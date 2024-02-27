@@ -1,25 +1,54 @@
 #!/bin/bash
 
-# Color codes for colorful logging
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-NC='\033[0m' # No Color
+# Function to install Go
+install_go() {
+    # Remove any existing Go installation
+    sudo rm -rf /usr/local/go
 
-# Step 1: Download
-echo -e "${GREEN}Step 1: Download${NC}"
-wget https://dl.google.com/go/go1.22.0.linux-amd64.tar.gz || { echo -e "${RED}Failed to download Go.${NC}"; exit 1; }
+    # Extract the downloaded archive into /usr/local
+    sudo tar -C /usr/local -xzf go1.22.0.linux-amd64.tar.gz
 
-# Step 2: Extract & Install
-echo -e "${GREEN}Step 2: Extract & Install${NC}"
-sudo tar -C /usr/local -xvf go1.22.0.linux-amd64.tar.gz || { echo -e "${RED}Failed to extract and install Go.${NC}"; exit 1; }
+    # Add /usr/local/go/bin to the PATH environment variable
+    if [[ ":$PATH:" != *":/usr/local/go/bin:"* ]]; then
+        echo 'export PATH=$PATH:/usr/local/go/bin' >> "$HOME/.profile"
+        source "$HOME/.profile"
+    fi
+}
 
-# Step 3: Add Path to file (if installing for the first time)
-echo -e "${GREEN}Step 3: Add Path to file${NC}"
-echo 'export PATH=$PATH:/usr/local/go/bin' >> $HOME/.profile || { echo -e "${RED}Failed to add path to ~/.profile.${NC}"; exit 1; }
-source $HOME/.profile || { echo -e "${RED}Failed to source ~/.profile.${NC}"; exit 1; }
+# Function to verify Go installation
+verify_go() {
+    # Verify that Go is installed
+    go_version=$(go version)
+    if [[ $go_version == *"go version"* ]]; then
+        echo "Go is installed. Version:"
+        echo "$go_version"
+    else
+        echo "Go installation failed."
+        exit 1
+    fi
+}
 
-# Step 4: Test
-echo -e "${GREEN}Step 4: Test${NC}"
-go version || { echo -e "${RED}Failed to verify Go installation.${NC}"; exit 1; }
+# Main function
+main() {
+    # Install Go
+    install_go
 
-echo -e "${GREEN}Installation completed successfully.${NC}"
+    # Verify Go installation
+    verify_go
+
+    # Test program
+    echo "Testing Go installation with a sample program..."
+    cat <<EOF > hello.go
+package main
+
+import "fmt"
+
+func main() {
+    fmt.Println("Hello, Go!")
+}
+EOF
+    go run hello.go
+}
+
+# Execute main function
+main
