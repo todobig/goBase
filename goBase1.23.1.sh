@@ -61,12 +61,29 @@ else
 fi
 
 # Add /usr/local/go/bin to the PATH environment variable if it's not already present
-print_info "Updating PATH environment variable..."
+print_info "Updating PATH environment variable in .profile and .bashrc..."
 if ! grep -qF "/usr/local/go/bin" "$HOME/.profile"; then
     echo 'export PATH=$PATH:/usr/local/go/bin' >> "$HOME/.profile"
     print_success "PATH updated in .profile."
 else
-    print_warning "PATH already contains Go binaries."
+    print_warning "PATH already contains Go binaries in .profile."
+fi
+
+# Also update .bashrc or .zshrc for permanent fix across all shell sessions
+if [ -f "$HOME/.bashrc" ]; then
+    if ! grep -qF "/usr/local/go/bin" "$HOME/.bashrc"; then
+        echo 'export PATH=$PATH:/usr/local/go/bin' >> "$HOME/.bashrc"
+        print_success "PATH updated in .bashrc."
+    else
+        print_warning "PATH already contains Go binaries in .bashrc."
+    fi
+elif [ -f "$HOME/.zshrc" ]; then
+    if ! grep -qF "/usr/local/go/bin" "$HOME/.zshrc"; then
+        echo 'export PATH=$PATH:/usr/local/go/bin' >> "$HOME/.zshrc"
+        print_success "PATH updated in .zshrc."
+    else
+        print_warning "PATH already contains Go binaries in .zshrc."
+    fi
 fi
 
 # Immediately apply the PATH change for the current shell
